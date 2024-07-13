@@ -33,8 +33,6 @@
 ## Non Functional Requirement:
 - (INBOUND, EXTERNAL)
     * Near real time 
-    * Order need to be maintained
-    * Immediate consistency
 * (INBOUND, INTERNAL)
     * Eventual consistency
 * (OUTBOUND, INTERNAL): 
@@ -56,6 +54,7 @@
 
 ## Design 
 (INBOUND, INTERNAL) & (INBOUND, INTERNAL)
+![Alt text](design/enrichment.jpg?raw=true "Title")
 * Model Service : This service will keep blueprint for the entity and relationship
 ```json
 {

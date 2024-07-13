@@ -1,4 +1,46 @@
 
+# Atlan Lily
+
+
+## Problem statement
+1.) (INBOUND, EXTERNAL) : A customer uses Monte Carlo as a tool for data observability. They have set it up so that Monte Carlo catches any table health or data reliability issues early on. The customer would like Atlan to also become a near-real-time repository of such issues, with relevant metadata attached to respective assets.
+
+2.)(INBOUND, INTERNAL) : A prospect has a metadata estate spanning 1B metadata assets. While the bulk of this payload is columns in different tables and BI fields (~90% of total), the remaining 10% consists of assets such as databases, schemas, tables, and dashboards. They want to ingest metadata using Atlan’s metadata extraction with an 80-20 rule, where columns become eventually consistent in the metadata lake.
+
+3.) (OUTBOUND, INTERNAL) : There are internal enrichment automation requirements towards metadata into Atlan, such that any change in the Atlan entity triggers similar changes to entities connected downstream in lineage from that entity.
+
+4.) (OUTBOUND, EXTERNAL) : A customer of Atlan wants to enforce data access security and compliance. They require that as soon as an entity is annotated as PII or GDPR in Atlan, their downstream data tools become aware of it and enforce access control while running SQL queries on the data.
+
+## Functional Requirement:
+
+* (INBOUND, EXTERNAL)
+    * Atlan should store data send from Monte carlo corresponding to the assets
+* (INBOUND, INTERNAL)
+    * Data should be eventually consistent
+    * Enrichments made by the customer should not be lost due to rescanning
+    * System should be able to detect changes in the entities from the last scan
+    * Need to support various types of assets
+*   (OUTBOUND, INTERNAL): 
+    * User should be able to add/delete/update enrichments i.e. additional information to the object. 
+    * Supporting enrichment for single key:value for now
+    * Enrichments changes on the parent should be migrated to child
+*   (OUTBOUND, EXTERNAL)
+    * Data access flag i.e. PII or GDPR should be added as part of notification to the consumers
+    * Data access flags should be added to downstream entities as well
+
+
+
+## Non Functional Requirement:
+- (INBOUND, EXTERNAL)
+    * Near real time 
+    * Order need to be maintained
+    * Immediate consistency
+* (INBOUND, INTERNAL)
+    * Eventual consistency
+* (OUTBOUND, INTERNAL): 
+    * Enrichment should not lost after rescan
+
+
 ## APIs:
 * createResource(resource_conf, resource_name)
 * ingest(resource_name)

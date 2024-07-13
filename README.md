@@ -54,7 +54,7 @@
 
 ## Design 
 (INBOUND, INTERNAL) & (INBOUND, INTERNAL)
-![Alt text](design/ingestion.jpg?raw=true "Title")
+![Alt text](designs/ingestion.jpg?raw=true "Title")
 * Model Service : This service will keep blueprint for the entity and relationship
 ```json
 {
@@ -78,6 +78,7 @@
     }
 }
 ```
+![Alt text](designs/ingestion_user_flow.jpg?raw=true "Title")
 * User scan a resource and queries model services for all the attributes that can be fetched from the perticular resource type
 
 * It then creates a document with entity and relationship like so
@@ -120,6 +121,8 @@ Find the deleted object, delete edge corresponding to them, deleted properties a
 
 * The change events is pushed to a kafka queue, with will have consumer can be graph publisher , which will recieve the change event for insertion and deletion and create a graph out of it
 
+  ![Alt text](designs/enrichment_service.jpg?raw=true "Title")
+
 * To enrich any entity atlan user has to fire enrichment request providing the entity_id with attribute values to be updated
 
 * The enrichment request gets submitted to kafka queue
@@ -127,6 +130,8 @@ Find the deleted object, delete edge corresponding to them, deleted properties a
 * The Enrichment service listens to this enrichment request
 
 * Updates the user facing graph store , if property is to be propagated enrichment service hirarchially traverse the objects and it children and update the property placing the update property event back to kafka queue
+
+![Alt text](designs/enrichment_flow.jpg?raw=true "Title")
 
 (INBOUND, External) & (OUTBOUND, EXTERNAL):
 * Monte Carlo can be configured with webhooks calling the atlan apis to add issues for the entities

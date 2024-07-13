@@ -54,7 +54,7 @@
 
 ## Design 
 (INBOUND, INTERNAL) & (INBOUND, INTERNAL)
-![Alt text](design/enrichment.jpg?raw=true "Title")
+![Alt text](design/ingestion.jpg?raw=true "Title")
 * Model Service : This service will keep blueprint for the entity and relationship
 ```json
 {

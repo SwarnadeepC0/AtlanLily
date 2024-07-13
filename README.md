@@ -131,9 +131,10 @@ Find the deleted object, delete edge corresponding to them, deleted properties a
 
 * Updates the user facing graph store , if property is to be propagated enrichment service hirarchially traverse the objects and it children and update the property placing the update property event back to kafka queue
 
-![Alt text](designs/enrichment_flow.jpg?raw=true "Title")
+![Alt text](designs/enrichment_user_flow.jpg?raw=true "Title")
 
 (INBOUND, External) & (OUTBOUND, EXTERNAL):
+![Alt text](designs/issue_generator.jpg?raw=true "Title")
 * Monte Carlo can be configured with webhooks calling the atlan apis to add issues for the entities
 
 * The issues can be added as a custom attribute for any entity that customer is monitoring for entities
@@ -155,7 +156,6 @@ Find the deleted object, delete edge corresponding to them, deleted properties a
 * The enrichment service applies the enrichment on frontend, propagate it if required and place the property update event back to kafka queue
 
 * The downstream component will become aware of all the entities that will have PII or GDPR value set and store them at their end for future reference. 
-
 
 
 

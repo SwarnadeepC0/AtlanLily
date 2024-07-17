@@ -86,10 +86,10 @@ x-airflow-common:
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-..}/AtlanLily/services:/opt/airflow/services
-    - ${AIRFLOW_PROJ_DIR:-..}/AtlanLily/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-..}/AtlanLily/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-..}/AtlanLily/resources:/opt/airflow/resources
+    - ${AIRFLOW_PROJ_DIR:-..}/Atlan_Lily/services:/opt/airflow/services
+    - ${AIRFLOW_PROJ_DIR:-..}/Atlan_Lily/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-..}/Atlan_Lily/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-..}/Atlan_Lily/resources:/opt/airflow/resources
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on

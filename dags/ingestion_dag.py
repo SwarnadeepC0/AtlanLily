@@ -10,11 +10,11 @@ def get_children(path, name, scan_time,resource_name) :
     from mongo_utils import MongoUtils
     modelService = ModelService()
     if os.path.isfile(path):
-        classType = 'file'
+        class_type = 'file'
     else:
-        classType = 'folder'
-    properties = modelService.get_all_attributes(class_type=classType, model_name='filesystem', custom=False)
-    object_doc = {'entity_id' : path, 'name' : path, 'classType' : classType, 'name' : name, 'last_scan' : scan_time,
+        class_type = 'folder'
+    properties = modelService.get_all_attributes(class_type=class_type, model_name='filesystem', custom=False)
+    object_doc = {'entity_id' : path, 'name' : path, 'classType' : class_type, 'last_scan' : scan_time,
                        'resource_name': resource_name, 'properties' : []}
     for property in properties:
         if property['id'] == 'core.name' :
@@ -26,20 +26,21 @@ def get_children(path, name, scan_time,resource_name) :
     relationship_doc = {'from':name, 'to':path, 'resource_name': resource_name, 'scan_time':scan_time}
     MongoUtils.insert('stage_relationship', relationship_doc)
     if os.path.isfile(path):
-        return;
+        return
     for file in os.listdir(path):
         get_children(path+"/"+file, path, scan_time, resource_name)
 
 def ScanAndStageTask(**kwargs):
     from mongo_utils import MongoUtils
+    from bson import ObjectId
     print('Runing scan and stage')
     try:
-        #run_id = kwargs['dag_run'].conf["run_id"]
-        # resource_run = mongodb.find_one("resource_run", {"_id":ObjectId(run_id)})
-        # resource = resource_run['conf']
+        run_id = kwargs['dag_run'].conf["run_id"]
+        resource_run = MongoUtils.find_one("resource_run", {"_id":ObjectId(run_id)})
+        resource = resource_run['conf']
         from bson import ObjectId
-        resource = MongoUtils.find_one("resource", {"resource_name":"test_res"})
-        name = "test"
+        resource = MongoUtils.find_one("resource", {"resource_name":resource['resource_name']})
+        name = resource['resource_name']
         scan_time = round(time.time() * 1000)
         modelService = ModelService()
         properties = modelService.get_all_attributes(class_type='resource',model_name='resource', custom=False)
@@ -49,7 +50,7 @@ def ScanAndStageTask(**kwargs):
             if property['id'] == 'core.name' :
                 value = name
             resource_doc['properties'].append({'id' : property['id'], 'value' : value})
-        print(str(resource))
+        #print(str(resource))
         MongoUtils.insert('stage_objects', resource_doc)
         get_children(resource['absolute_path'], name, scan_time, name)
     except Exception as e:
@@ -124,11 +125,11 @@ def insert_event_for_property(event_producer, key, value, entity_id) :
 def ResolveTask(**kwargs):
     from event_producer import EventProducer
     from mongo_utils import MongoUtils
-    #run_id = kwargs['dag_run'].conf["run_id"]
-    #mongodb = MongoUtils.get_mongodb()
-    #resource_run = mongodb.find_one("resource_run", {"_id" : ObjectId(run_id)})
-    #resource = resource_run['conf']
-    name = 'test'
+    run_id = kwargs['dag_run'].conf["run_id"]
+    from bson import ObjectId
+    resource_run = MongoUtils.find_one("resource_run", {"_id" : ObjectId(run_id)})
+    resource = resource_run['conf']
+    name = resource['resource_name']
     cursor = MongoUtils.aggregate("stage_objects", [
     {
         '$match': {
@@ -146,25 +147,25 @@ def ResolveTask(**kwargs):
         }
     }
 ])
-    eventProducer = EventProducer();
+    eventProducer = EventProducer()
     scan_times = []
     for scan_time in cursor:
         scan_times.append(scan_time['last_scan'])
-    print(scan_times)
+    print('scan_time'+str(len(scan_times)))
     if len(scan_times)==1:
         objects = MongoUtils.find('stage_objects', {'resource_name':name, 'last_scan':{'$gte':scan_times[0]}})
-        objectCol = []
+        object_col = []
         for object in objects:
             insert_event_for_objects(eventProducer, object)
-            objectCol.append(object)
-        for object in objectCol:
+            object_col.append(object)
+        for object in object_col:
             insert_event_for_attributes(eventProducer, object['properties'], object['entity_id'])
-        relationships = MongoUtils.find('stage_relationship', {'resource_name':'test','scan_time':{'$gte':scan_times[0]}})
+        relationships = MongoUtils.find('stage_relationship', {'resource_name':name,'scan_time':{'$gte':scan_times[0]}})
         for relationship in relationships:
             insert_event_for_relationships(eventProducer, relationship)
-    if len(scan_times)>2:
+    elif len(scan_times)>=2:
         objects = MongoUtils.find('stage_objects', {'resource_name' : name, 'last_scan' : {'$gte' : scan_times[0]}})
-        prev_objects = MongoUtils.find('stage_objects', {'resource_name' : name, 'last_scan' : {'$gte' : scan_times[1], "$lte": scan_times[0]}})
+        prev_objects = MongoUtils.find('stage_objects', {'resource_name' : name, 'last_scan' : {'$gte' : scan_times[1], "$lt": scan_times[0]}})
         curr_obj_dict={}
         prev_obj_dict = {}
         deleteObject = []
@@ -175,7 +176,6 @@ def ResolveTask(**kwargs):
         prev_obj_property = {}
         for object in objects:
             curr_obj_dict[object['entity_id']]=object
-        print(str(curr_obj_dict.keys()))
         for object in prev_objects:
             identity = object['entity_id']
             if identity not in curr_obj_dict:
@@ -183,30 +183,30 @@ def ResolveTask(**kwargs):
                 deleteObject.append(object)
             else :
                 curr_obj = curr_obj_dict[identity]
-                for property in curr_obj['properties']:
-                    curr_obj_property[property['key']+":"+identity] = {'id':identity, 'value':property['value']}
-                for property in prev_obj_dict['properties']:
-                    prev_obj_property[property['key']+":"+identity] = {'id':identity, 'value':property['value']}
+                for property in curr_obj.get('properties',[]):
+                    curr_obj_property[property['id']+":"+identity] = {'id':identity, 'value':property['value']}
+                for property in prev_obj_dict.get('properties',[]):
+                    prev_obj_property[property['id']+":"+identity] = {'id':identity, 'value':property['value']}
                 prev_obj_dict[object['entity_id']]=object
-        for key,value in curr_obj_dict:
+        for key,value in curr_obj_dict.items():
             if key not in prev_obj_dict:
                 insertObjects.append(value)
-        for key, value in curr_obj_property:
+        for key, value in curr_obj_property.items():
             if key not in prev_obj_property:
                 insertProperty.append({'key':key, 'value':value})
             else :
                 if value != prev_obj_property[key]:
                     insertProperty.append({'key':key, 'value':value})
-        for key, value in prev_obj_property:
+        for key, value in prev_obj_property.items():
             if key not in curr_obj_property :
                 deleteProperty.append({'key':key, 'value':value})
         for object in insertObjects:
-            insert_event_for_objects(eventProducer, object['value'])
+            insert_event_for_objects(eventProducer, object)
         for object in  deleteObject:
             delete_event_for_objects(eventProducer, object)
         for property in  deleteProperty:
             delete_event_for_property(deleteProperty['key'].split(":")[0],deleteProperty['key'].split(":")[1])
-
+    eventProducer.send({'entity_id':'poison_kill'},'deleteObject')
 
     eventProducer.close()
 

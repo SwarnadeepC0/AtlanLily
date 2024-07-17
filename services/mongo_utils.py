@@ -48,6 +48,7 @@ class MongoUtils(object):
 
     @staticmethod
     def update_one(collection_name, search_query, update_query, upsert=False, bypass_document_validation=False):
+        print(str(update_query))
         return MongoUtils.get_mongodb()[collection_name].update_one(search_query, update_query, upsert=upsert,
                                                    bypass_document_validation=bypass_document_validation)
 
@@ -62,6 +63,7 @@ class MongoUtils(object):
 
     @staticmethod
     def aggregate(collection_name, pipeline):
+        print(str(pipeline))
         return MongoUtils.get_mongodb()[collection_name].aggregate(pipeline)
 
     @staticmethod

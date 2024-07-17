@@ -6,14 +6,14 @@ class ModelService :
         'name' : 'filesystem',
         'classType' : [
             {'id' : 'folder'},
-            {'id' : 'files'}
+            {'id' : 'file'}
         ],
         'properties' : [
             {
                 'id' : 'filesystem.modifiedAt',
                 'name' : 'modifiedAt',
                 'propagate' : False,
-                'classType' : ['folder', 'files']
+                'classType' : ['folder', 'file']
             }
         ],
         'relationship' : [
@@ -35,7 +35,7 @@ class ModelService :
                 'id' : 'core.name',
                 'name' : 'name',
                 'propagate' : False,
-                'classType' : ['folder', 'files', 'resource']
+                'classType' : ['folder', 'file', 'resource']
             }
         ],
         'relationship' : [

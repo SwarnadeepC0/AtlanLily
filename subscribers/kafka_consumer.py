@@ -34,6 +34,9 @@ class GraphPublisher :
                         print(str(consumer_obj.topic))
                         if consumer_obj.topic == 'deleteObject':
                             id = event['entity_id']
+                            if id == 'poison_kill':
+                                print('consuming kafka application done')
+                                sys.exit(0)
                             MongoUtils.deleteMany("objects",{'entity_id':id})
                         if consumer_obj.topic == 'insertObject' :
                             id = event['entity_id']
@@ -47,7 +50,7 @@ class GraphPublisher :
                             properties = event['properties']
                             for property in properties:
                                 MongoUtils.update_one("objects", {'entity_id' : id}, {'$push' :
-                                                                                          {'key' :property['key'], 'value':property['value']}})
+                                                                                          {'properties':{'key' :property['key'], 'value':property['value']}}})
                         if consumer_obj.topic == 'deleteProperty' :
                             id = event['entity_id']
                             properties = event['properties']
